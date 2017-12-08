@@ -1,12 +1,14 @@
-# vespa
-Python code for VESPA and FK analysis of seismic data
+# VesPy
+A Python toolkit for seismic array analysisa
 
 Version 1.0
-Uploaded to GitHub 8th January 2016
+8th December 2017
 
 Neil Wilkins
 University of Bristol
-nw14876 (at) bristol (dot) ac (dot) uk
+neil.wilkins6 (at) bristol (dot) ac (dot) uk
+
+
 
 Install using Python (distutils):
 
