@@ -6,7 +6,7 @@ Version 1.1
 -------
 Neil Wilkins
 University of Bristol
-neil.wilkins6 (at) bristol (dot) ac (dot) uk
+neil.wilkins (at) bristol (dot) ac (dot) uk
 
 
 
