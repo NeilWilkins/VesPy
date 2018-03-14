@@ -5,9 +5,9 @@
 import numpy as np
 from obspy.core import Trace
 
-from vespy.stacking import get_shifts, linear_stack, nth_root_stack
+from vespy.stacking import get_shifts, linear_stack, nth_root_stack, phase_weighted_stack
 
-def semblance(st, s, baz, winlen):
+def semblance(st, s, baz, winlen, n=1):
     '''
     Returns the semblance for a seismic array, for a beam of given slowness and backazimuth.
 
@@ -34,7 +34,7 @@ def semblance(st, s, baz, winlen):
 
     nsta = len(st)
 
-    stack = linear_stack(st, s, baz)
+    stack = nth_root_stack(st, s, baz, n)
 
     # Taper the linear stack
     stack_trace = Trace(stack)
@@ -120,7 +120,7 @@ def f_stat(stack, st, s, baz, winlen):
 
     return F
 
-def f_vespa(st, s, baz, winlen):
+def f_vespa(st, s, baz, winlen, n=1):
     '''
     Returns the F-statistic for a seismic array, for a beam of given slowness and backazimuth.
 
@@ -146,7 +146,7 @@ def f_vespa(st, s, baz, winlen):
     assert len(set([len(tr) for tr in st])) == 1, "Traces in stream have different lengths, cannot stack."
 
     nsta = len(st)
-    stack = linear_stack(st, s, baz)
+    stack = nth_root_stack(st, s, baz, n)
 
     # Taper the linear stack
     stack_trace = Trace(stack)
@@ -224,3 +224,29 @@ def n_power_vespa(st, s, baz, n, winlen):
     amplitude = nth_root_stack(st, s, baz, n)
     power = np.convolve(amplitude**2, np.hanning(winlen), mode='same')
     return power
+
+def pw_power_vespa(st, s, baz, n, winlen):
+        '''
+        Returns the phase-weighted power vespa (i.e. the power in the phase weighted stack) for a seismic array, for a beam of given slowness and backazimuth.
+
+        Parameters
+        ----------
+        st : ObsPy Stream object
+            Stream of SAC format seismograms for the seismic array, length K = no. of stations in array
+        s  : float
+            Magnitude of slowness vector, in s / km
+        baz : float
+            Backazimuth of slowness vector, (i.e. angle from North back to epicentre of event)
+        n   : int
+            Order of the phase-weighted stacking to be applied, default 1. Should be int, n >= 0.
+        winlen : int
+            Length of Hann window over which to calculate the power.
+
+        Returns
+        -------
+        power : NumPy array
+            The power of the nth root stack at the given slowness and backazimuth, as a time series.
+        '''
+        amplitude = phase_weighted_stack(st, s, baz, n)
+        power = np.convolve(amplitude**2, np.hanning(winlen), mode='same')
+        return power

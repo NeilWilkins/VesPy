@@ -8,10 +8,10 @@ from obspy.taup import TauPyModel
 from obspy.geodetics import locations2degrees
 
 from vespy.utils import G_KM_DEG
-from vespy.stacking import linear_stack, nth_root_stack
-from vespy.stats import n_power_vespa, f_vespa
+from vespy.stacking import linear_stack, nth_root_stack, phase_weighted_stack
+from vespy.stats import n_power_vespa, f_vespa, pw_power_vespa
 
-def vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', n=1):
+def vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weighting=False, n=1):
     '''
     Calculates the vespagram for a seismic array over a given slowness range, for a single backazimuth, using the statistic specified.
 
@@ -50,17 +50,26 @@ def vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', n=1):
 
     try:
         if stat == 'amplitude':
-            vespagram_data = np.array([nth_root_stack(st, s, baz, n) for s in np.linspace(smin, smax, ssteps)])
+            if phase_weighting:
+                vespagram_data = np.array([phase_weighted_stack(st, s, baz, n) for s in np.linspace(smin, smax, ssteps)])
+            else:
+                vespagram_data = np.array([nth_root_stack(st, s, baz, n) for s in np.linspace(smin, smax, ssteps)])
+
         elif stat == 'power':
-            vespagram_data = np.array([n_power_vespa(st, s, baz, n, winlen) for s in np.linspace(smin, smax, ssteps)])
+            if phase_weighting:
+                vespagram_data = np.array([pw_power_vespa(st, s, baz, n, winlen) for s in np.linspace(smin, smax, ssteps)])
+            else:
+                vespagram_data = np.array([n_power_vespa(st, s, baz, n, winlen) for s in np.linspace(smin, smax, ssteps)])
+
         elif stat == 'F':
-            vespagram_data = np.array([f_vespa(st, s, baz, winlen) for s in np.linspace(smin, smax, ssteps)])
+            vespagram_data = np.array([f_vespa(st, s, baz, winlen, n) for s in np.linspace(smin, smax, ssteps)])
+
     except AssertionError as err:
         raise err
 
     return vespagram_data
 
-def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', n=1, display='contourf', outfile=None):
+def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weighting=False, n=1, display='contourf', outfile=None):
     '''
     Plots the vespagram for a seismic array over a given slowness range, for a single backazimuth, using the statistic specified.
 
@@ -95,7 +104,7 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', n=1, displ
     vespagram_data = np.array([])
 
     try:
-        vespagram_data = vespagram(st, smin, smax, ssteps, baz, winlen, stat, n=1)
+        vespagram_data = vespagram(st, smin, smax, ssteps, baz, winlen, stat, phase_weighting, n)
     except AssertionError as err:
         print err.args[0]
         return None
@@ -110,7 +119,7 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', n=1, displ
         title = timestring + ": " + label + " Vespagram, n=" + str(n)
     elif stat == 'F':
         label = 'F'
-        title = timestring + ": " + label + " Vespagram"
+        title = timestring + ": " + label + " Vespagram, n=" + str(n)
     else:
         raise AssertionError("'stat' argument must be one of 'amplitude', 'power' or 'F'")
 

@@ -76,6 +76,60 @@ def get_shifts(st, s, baz):
 
     return shifts
 
+def get_shifts_3d(st, s, theta, baz):
+    '''
+    Calculates the shifts (as an integer number of samples in the time series) for every station in a stream of time series seismograms for a slowness vector of given magnitude and backazimuth.
+
+    Takes account of the full 3d slowness vector in order to factor in station elevations.
+
+    The shift is that which needs to be applied in order to align an arrival (arriving with slowness s and backazimuth baz) with the same arrival at the array reference point (the location of the station that makes up the first trace in the stream).
+
+    Parameters
+    ----------
+    st : ObsPy Stream object
+        Stream of SAC format seismograms for the seismic array, length K = no. of stations in array
+    s  : float
+        Horizontal slowness in s / km
+    theta : float
+        Angle of incidence in degrees
+    baz : float
+        Backazimuth of slowness vector, (i.e. angle from North back to epicentre of event)
+
+    Returns
+    -------
+    shifts : list
+        List of integer delays at each station in the array, also length K
+    '''
+
+    shifts = []
+    r = [] # Displacemnt of each station from centre
+
+    # First station is reference point, so has zero position vector
+    #r.append(0.0)
+    sampling_rate = st[0].stats.sampling_rate
+
+    geometry = get_station_coordinates(st)/1000. # in km
+
+    # 3D Slowness vector
+    s_x, s_y = resolve_slowness_vector(s, baz)
+    s_z = s / np.tan(degrees_to_radians(theta))
+
+    #shifts.append(0)
+
+    # For each station, get distance from array reference point (first station), and the angular displacement clockwise from north
+    for station in geometry:
+        r_x = station[0] # x-component of position vector
+        r_y = station[1] # y-component of position vector
+        r_z = station[2] # z-component of position vector
+
+        delta_t = np.dot([r_x, r_y, r_z], [s_x, s_y, s_z])
+
+        shift = int(round(delta_t * sampling_rate))
+
+        shifts.append(shift)
+
+    return shifts
+
 def linear_stack(st, s, baz):
     '''
     Returns the linear (delay-and-sum) stack for a seismic array, for a beam of given slowness and backazimuth.
