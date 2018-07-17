@@ -2,37 +2,11 @@
 # module: vespa.stacking
 # Functions for applying various stacking methods to seismic data
 
-from vespy.utils import get_station_coordinates
+from vespa.utils import get_station_coordinates
 import numpy as np
 import scipy.signal as sig
 import cmath
 
-def degrees_to_radians(theta):
-    return theta * np.pi / 180
-
-def resolve_slowness_vector(s, baz):
-    '''
-    Resolves a scalar slowness and backazimuth into the x and y components of the two-dimensional slowness vector.
-
-    Parameters
-    ----------
-    s  : float
-        Magnitude of slowness vector, in s / km
-    baz : float
-        Backazimuth of slowness vector, (i.e. angle from North back to epicentre of event)
-
-    Returns
-    -------
-    (s_x, s_y) : tuple
-        Tuple containing the magnitude of the x and y components of the 2d slowness vector, in s / km.
-    '''
-
-    baz_rad = np.deg2rad(baz)
-
-    s_x = s * np.sin(baz_rad)
-    s_y = s * np.cos(baz_rad)
-
-    return s_x, s_y
 
 def get_shifts(st, s, baz):
     '''

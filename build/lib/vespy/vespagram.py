@@ -4,6 +4,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from obspy.taup import TauPyModel
 from obspy.geodetics import locations2degrees
 
@@ -106,7 +107,7 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weig
     try:
         vespagram_data = vespagram(st, smin, smax, ssteps, baz, winlen, stat, phase_weighting, n)
     except AssertionError as err:
-        print(err.args[0])
+        print err.args[0]
         return None
 
     timestring = str(st[0].stats.starttime.datetime)
@@ -124,6 +125,7 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weig
         raise AssertionError("'stat' argument must be one of 'amplitude', 'power' or 'F'")
 
     plt.figure(figsize=(16, 8))
+    plt.set_cmap(cm.viridis)
 
     if display == 'contourf':
         plt.contourf(st[0].times(), np.linspace(smin, smax, ssteps), vespagram_data[:, :])
@@ -187,6 +189,7 @@ def f_vespagram_theoretical_arrivals(st, origin, smin, smax, ssteps, baz, winlen
     arrival_slowness = [arrival.ray_param_sec_degree/G_KM_DEG for arrival in arrivals]
 
     plt.figure(figsize=(16, 8))
+    plt.set_cmap(cm.viridis)
 
     vespagram = np.array([f_vespa(st, s, baz, winlen) for s in np.linspace(smin, smax, ssteps)])
     label = 'F'
@@ -309,6 +312,7 @@ def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='po
         raise AssertionError("'stat' argument must be one of 'amplitude', 'power' or 'F'")
 
     plt.figure(figsize=(16, 8))
+    plt.set_cmap(cm.viridis)
 
     if display == 'contourf':
         plt.contourf(st[0].times(), np.linspace(bazmin, bazmax, bazsteps), vespagram_data[:, :])

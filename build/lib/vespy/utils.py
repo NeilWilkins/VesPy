@@ -246,27 +246,27 @@ def find_event(st, timebefore=5, timeafter=5, service="IRIS"):
         cat = webservice.get_events(starttime=st[0].stats.starttime - timebefore, endtime=st[0].stats.starttime + timeafter, minmagnitude=st[0].stats.sac.mag - 1.0, maxmagnitude=st[0].stats.sac.mag + 1.0)
 
     except FDSNException:
-        print("No event found for stream startttime. Try adjusting time window.")
+        print "No event found for stream startttime. Try adjusting time window."
         return
 
     except AttributeError:
-        print("No stats.sac dictionary, attempting search based on time window alone...")
+        print "No stats.sac dictionary, attempting search based on time window alone..."
 
         try:
             cat = webservice.get_events(starttime=st[0].stats.starttime - timebefore, endtime=st[0].stats.starttime + timeafter)
 
         except FDSNException:
-            print("No event found for stream startttime. Try adjusting time window.")
+            print "No event found for stream startttime. Try adjusting time window."
             return
 
     if len(cat) > 1:
-        print("Multiple events found for stream starttime. Try adjusting time window.")
-        print(cat)
+        print "Multiple events found for stream starttime. Try adjusting time window."
+        print cat
         return
 
     event = cat[0]
 
-    print(event)
+    print event
 
     return event
 

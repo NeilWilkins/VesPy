@@ -10,9 +10,9 @@ from obspy.core.event import read_events
 
 from scipy.signal import correlate
 
-from vespy.utils import get_arrivals, get_first_arrival
-from vespy.vespagram import vespagram, vespagram_backazimuth, plot_vespagram, plot_vespagram_backazimuth
-from vespy.stacking import linear_stack, get_shifts
+from vespa.utils import get_arrivals, get_first_arrival
+from vespa.vespagram import vespagram, vespagram_backazimuth, plot_vespagram, plot_vespagram_backazimuth
+from vespa.stacking import linear_stack, get_shifts
 
 def time_corrections(st, s_corr, inv=None, station_list=None, winlen=20):
         '''
