@@ -5,7 +5,7 @@
 from distutils.core import setup
 
 setup(name='VesPy',
-      version='1.0',
+      version='1.1',
       description='A Python toolkit for seismic array analysis',
       author='Neil Wilkins',
       author_email='neil.wilkins@bristol.ac.uk',
