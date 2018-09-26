@@ -4,6 +4,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from obspy.taup import TauPyModel
 from obspy.geodetics import locations2degrees
 
@@ -109,6 +110,7 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weig
     outfile : string
         Filename for saving plot.
     '''
+    plt.set_cmap(cm.viridis)
 
     assert display == 'contourf' or display == 'contour', "Invalid display option; must be 'contourf' or 'contour'"
 
@@ -185,6 +187,7 @@ def f_vespagram_theoretical_arrivals(st, origin, smin, smax, ssteps, baz, winlen
     display: string
         Option for plotting: either 'contourf' for filled contour plot, or 'contour' for contour plot. See matplotlib documentation for more details.
     '''
+    plt.set_cmap(cm.viridis)
 
     starttime = st[0].stats.starttime
     tt_model = TauPyModel()
@@ -321,6 +324,7 @@ def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='po
         Option for plotting: either 'contourf' for filled contour plot, or 'contour' for contour plot. See matplotlib documentation for more details.
 
     '''
+    plt.set_cmap(cm.viridis)
 
     assert display == 'contourf' or display == 'contour', "Invalid display option; must be 'contourf' or 'contour'"
 

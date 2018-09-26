@@ -4,6 +4,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 from vespy.utils import get_station_coordinates
 
@@ -190,6 +191,7 @@ def fk_plot(st, smax, fmin, fmax, tmin, tmax, stat='power', outfile=None):
     stat : string
         Statistic that is to be calculated over the slowness grid, either 'power', 'semblance', or 'F'
     '''
+    plt.set_cmap(cm.viridis)
 
     nbeam = len(st)
 
