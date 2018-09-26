@@ -1,5 +1,5 @@
 # stacking.py
-# module: vespa.stacking
+# module: vespy.stacking
 # Functions for applying various stacking methods to seismic data
 
 from vespy.utils import get_station_coordinates

@@ -37,6 +37,11 @@ def vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weighting
         Length of Hann window over which to calculate the power.
     stat : string
         Statistic to use for plotting the vespagram, either 'amplitude', 'power', or 'F'
+    phase_weighting : Boolean
+        Whether or not to apply phase-weighting to the stacks in the vespagram.
+    n : int
+        Order for the stack, or if phase_weighting==True, order of the weighting applied.
+
 
     Returns
     -------
@@ -95,8 +100,14 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weig
         Length of Hann window over which to calculate the power.
     stat : string
         Statistic to use for plotting the vespagram, either 'amplitude', 'power', or 'F'
+    phase_weighting : Boolean
+        Whether or not to apply phase-weighting to the stacks in the vespagram.
+    n : int
+        Order for the stack, or if phase_weighting==True, order of the weighting applied.
     display: string
         Option for plotting: either 'contourf' for filled contour plot, or 'contour' for contour plot. See matplotlib documentation for more details.
+    outfile : string
+        Filename for saving plot.
     '''
 
     assert display == 'contourf' or display == 'contour', "Invalid display option; must be 'contourf' or 'contour'"
@@ -214,7 +225,7 @@ def f_vespagram_theoretical_arrivals(st, origin, smin, smax, ssteps, baz, winlen
     plt.ylabel("Slowness (s / km)")
     plt.title(title)
 
-def vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power', n=1):
+def vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power', phase_weighting=False, n=1):
     '''
     Calculates the vespagram for a seismic array over a given range of backazimuths, for a single scalar slowness, using the statistic specified.
 
@@ -240,6 +251,10 @@ def vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power',
         Length of Hann window over which to calculate the power.
     stat : string
         Statistic to use for plotting the vespagram, either 'amplitude', 'power', or 'F'
+    phase_weighting : Boolean
+        Whether or not to apply phase-weighting to the stacks in the vespagram.
+    n : int
+        Order for the stack, or if phase_weighting==True, order of the weighting applied.
 
     Returns
     -------
@@ -247,19 +262,29 @@ def vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power',
         Array of values for the chosen statistic at each backazimuth and time step. Dimensions: bazsteps*len(tr) for traces tr in st.
     '''
 
-    if stat == 'amplitude':
-        vespagram_data = np.array([nth_root_stack(st, s, baz, n) for baz in np.linspace(bazmin, bazmax, bazsteps)])
-    elif stat == 'power':
-        vespagram_data = np.array([n_power_vespa(st, s, baz, n, winlen) for baz in np.linspace(bazmin, bazmax, bazsteps)])
-    elif stat == 'F':
-        vespagram_data = np.array([f_vespa(st, s, baz, winlen) for baz in np.linspace(bazmin, bazmax,bazsteps)])
-    else:
-        raise AssertionError("'stat' argument must be one of 'amplitude', 'power' or 'F'")
+    try:
+        if stat == 'amplitude':
+            if phase_weighting:
+                vespagram_data = np.array([phase_weighted_stack(st, s, baz, n) for baz in np.linspace(bazmin, bazmax, bazsteps)])
+            else:
+                vespagram_data = np.array([nth_root_stack(st, s, baz, n) for baz in np.linspace(bazmin, bazmax, bazsteps)])
+
+        elif stat == 'power':
+            if phase_weighting:
+                vespagram_data = np.array([pw_power_vespa(st, s, baz, n, winlen) for baz in np.linspace(bazmin, bazmax, bazsteps)])
+            else:
+                vespagram_data = np.array([n_power_vespa(st, s, baz, n, winlen) for baz in np.linspace(bazmin, bazmax, bazsteps)])
+
+        elif stat == 'F':
+            vespagram_data = np.array([f_vespa(st, s, baz, winlen, n) for baz in np.linspace(bazmin, bazmax, bazsteps)])
+
+    except AssertionError as err:
+        raise err
 
     return vespagram_data
 
 
-def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power', n=1, display='contourf', outfile=None):
+def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power', phase_weighting=False, n=1, display='contourf', outfile=None):
     '''
     Plots the vespagram for a seismic array over a given range of backazimuths, for a single scalar slowness, using the statistic specified.
 
@@ -285,16 +310,29 @@ def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='po
         Length of Hann window over which to calculate the power.
     stat : string
         Statistic to use for plotting the vespagram, either 'amplitude', 'power', or 'F'
+    phase_weighting : Boolean
+        Whether or not to apply phase-weighting to the stacks in the vespagram.
+    n : int
+        Order for the stack, or if phase_weighting==True, order of the weighting applied.
     display: string
+        Option for plotting: either 'contourf' for filled contour plot, or 'contour' for contour plot. See matplotlib documentation for more details.
+    outfile : string
+        Filename for saving plot. display: string
         Option for plotting: either 'contourf' for filled contour plot, or 'contour' for contour plot. See matplotlib documentation for more details.
 
     '''
 
     assert display == 'contourf' or display == 'contour', "Invalid display option; must be 'contourf' or 'contour'"
 
-    timestring = str(st[0].stats.starttime.datetime)
+    vespagram_data = np.array([])
 
-    vespagram_data = vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat, n=1)
+    try:
+        vespagram_data = vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat, phase_weighting, n)
+    except AssertionError as err:
+        print(err.args[0])
+        return None
+
+    timestring = str(st[0].stats.starttime.datetime)
 
     if stat == 'amplitude':
         label = "Amplitude"
@@ -304,7 +342,7 @@ def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='po
         title = timestring + ": " + label + " Vespagram, n=" + str(n)
     elif stat == 'F':
         label = 'F'
-        title = timestring + ": " + label + " Vespagram"
+        title = timestring + ": " + label + " Vespagram, n=" + str(n)
     else:
         raise AssertionError("'stat' argument must be one of 'amplitude', 'power' or 'F'")
 
@@ -320,76 +358,10 @@ def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='po
 
     plt.xlabel("Time (s)", fontsize=16)
     plt.ylabel("Backazimuth (deg)", fontsize=16)
-    plt.tick_params(axis='both', which='major', labelsize=14)
     plt.title(title, y=1.08, fontsize=18)
-
-
+    plt.tick_params(axis='both', which='major', labelsize=14)
 
     if outfile is not None:
         plt.savefig(outfile, bbox_inches='tight')
-
-    plt.show()
-
-def stack_vespagram(st, slowness_min, slowness_max, n_steps, baz, separation=0.5):
-
-    '''
-    Plots a stack vespagram for a seismic array over a given slowness range, for a single backazimuth.
-
-    The individual beam traces for each slowness step are plotted as a function of time (in s) and slowness (in s/km).
-
-    Parameters
-    ----------
-    st : ObsPy Stream object
-        Stream of SAC format seismograms for the seismic array, length K = no. of stations in array
-    slowness_min : float
-        Minimum magnitude of the slowness vector, in s/km
-    slowness_max : float
-        Maximum magnitude of the slowness vector, in s/km
-    n_steps  : int
-        Maximum backazimuth, in degrees
-    baz : float
-        Backazimuth of slowness vector, (i.e. angle from North back to epicentre of event)
-    winlen : int
-        Length of Hann window over which to calculate the power.
-    separation : float
-        Fraction of a single beam that overlaps with its neighbours. Smaller separations make a denser vespagram.
-    '''
-
-    slowness_range = np.linspace(slowness_min, slowness_max, n_steps)
-
-    vespas = [linear_stack(st, slowness, baz) for slowness in slowness_range]
-    times = st[0].times()
-
-    plt.figure(figsize=(14, 10))
-
-    # Find maximum and minimum amplitudes of the beam in order to set y-axes for beam traces.
-    max_y = np.max(np.array(vespas))
-    min_y = np.min(np.array(vespas))
-
-    trace_height = 1. / (1 + (n_steps - 1) * separation)
-
-    # Plot beam trace for each slowness value
-    for i, trace in enumerate(vespas):
-        # rect = [left, bottom, width, height]
-        trace_bottom = (1 - trace_height) + (i - n_steps + 1) * separation * trace_height
-        rect = [0, trace_bottom, 1, trace_height]
-        ax = plt.axes(rect, axisbg=None, frameon=False)
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        plt.plot(times, trace, alpha=0.6)
-        plt.ylim(min_y, max_y);
-        plt.xlim(0, 350);
-
-    # Create external axes to contain beam traces, and set its slowness range
-    plt.axes([0, 0, 1, 1], axisbg='none')
-    main_ax_slowness_max = slowness_max / (1 - 0.5 * trace_height)
-    main_ax_slowness_min = slowness_min - 0.5 * trace_height * main_ax_slowness_max
-
-    plt.ylim(main_ax_slowness_min, main_ax_slowness_max)
-    plt.xlim(0, 350)
-    plt.xlabel('Time (s)')
-    plt.yticks(fontsize=14);
-    plt.xticks(fontsize=14);
-    plt.ylabel('Slowness (s / km)')
 
     plt.show()
