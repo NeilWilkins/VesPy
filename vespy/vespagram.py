@@ -75,7 +75,7 @@ def vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weighting
 
     return vespagram_data
 
-def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weighting=False, n=1, display='contourf', outfile=None):
+def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', tmin=0, tmax=None, phase_weighting=False, n=1, display='contourf', outfile=None):
     '''
     Plots the vespagram for a seismic array over a given slowness range, for a single backazimuth, using the statistic specified.
 
@@ -138,11 +138,16 @@ def plot_vespagram(st, smin, smax, ssteps, baz, winlen, stat='power', phase_weig
 
     plt.figure(figsize=(16, 8))
 
+    if tmax is None:
+        tmax = st[0].times()[-1]
+
     if display == 'contourf':
         plt.contourf(st[0].times(), np.linspace(smin, smax, ssteps), vespagram_data[:, :])
+        plt.xlim(tmin, tmax)
     else:
         plt.contour(st[0].times(), np.linspace(smin, smax, ssteps), vespagram_data[:, :])
-
+        plt.xlim(tmin, tmax)
+        
     cb = plt.colorbar()
     cb.set_label(label)
 
@@ -287,7 +292,7 @@ def vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power',
     return vespagram_data
 
 
-def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='power', phase_weighting=False, n=1, display='contourf', outfile=None):
+def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, tmin=0, tmax=None, stat='power', phase_weighting=False, n=1, display='contourf', outfile=None):
     '''
     Plots the vespagram for a seismic array over a given range of backazimuths, for a single scalar slowness, using the statistic specified.
 
@@ -352,10 +357,15 @@ def plot_vespagram_backazimuth(st, s, bazmin, bazmax, bazsteps, winlen, stat='po
 
     plt.figure(figsize=(16, 8))
 
+    if tmax is None:
+        tmax = st[0].times()[-1]
+
     if display == 'contourf':
         plt.contourf(st[0].times(), np.linspace(bazmin, bazmax, bazsteps), vespagram_data[:, :])
+        plt.xlim(tmin, tmax)
     else:
         plt.contour(st[0].times(), np.linspace(bazmin, bazmax, bazsteps), vespagram_data[:, :])
+        plt.xlim(tmin, tmax)
 
     cb = plt.colorbar()
     cb.set_label(label)

@@ -191,6 +191,7 @@ def fk_plot(st, smax, fmin, fmax, tmin, tmax, stat='power', outfile=None):
     stat : string
         Statistic that is to be calculated over the slowness grid, either 'power', 'semblance', or 'F'
     '''
+    plt.set_cmap(cm.viridis)
 
     nbeam = len(st)
 
@@ -213,7 +214,6 @@ def fk_plot(st, smax, fmin, fmax, tmin, tmax, stat='power', outfile=None):
         backazimuth += 360.
 
     fig = plt.figure(figsize=(16, 14))
-    plt.set_cmap(cm.viridis)
     fig.add_axes([0.5,0.5,0.45,0.45])
 
     plt.contourf(slow_x, slow_y, fk, 16)
